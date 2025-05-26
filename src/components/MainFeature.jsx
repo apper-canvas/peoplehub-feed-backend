@@ -335,7 +335,14 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
       record.employeeId === employeeId && record.date === today
     )
     return todayRecord ? todayRecord.totalHours : 0
+  
+  const getTodaysAttendanceRecord = (employeeId) => {
+    const today = format(new Date(), 'yyyy-MM-dd')
+    return attendanceRecords.find(record => 
+      record.employeeId === employeeId && record.date === today
+    )
   }
+
   
   const handleSubmitTimesheet = (timesheetId) => {
     setTimesheets(timesheets.map(timesheet => 
@@ -938,13 +945,46 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                           }`}>
                             {isEmployeeClockedIn ? 'Clocked In' : 'Clocked Out'}
                           </span>
-                        </div>
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-surface-600 dark:text-surface-400">Today:</span>
                           <span className="font-medium text-surface-900 dark:text-surface-100">
                             {hoursToday}h
                           </span>
                         </div>
+                      </div>
+                      
+                      {/* Sign In/Out Times */}
+                      <div className="space-y-2 mb-4 p-3 bg-surface-50 dark:bg-surface-700/50 rounded-lg">
+                        <div className="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                          Today's Times
+                        </div>
+                        {(() => {
+                          const todaysRecord = getTodaysAttendanceRecord(employee.id)
+                          return (
+                            <>
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs text-surface-600 dark:text-surface-400 flex items-center space-x-1">
+                                  <ApperIcon name="LogIn" className="w-3 h-3" />
+                                  <span>Sign In:</span>
+                                </span>
+                                <span className="text-sm font-medium text-surface-900 dark:text-surface-100">
+                                  {todaysRecord?.clockIn || 'Not signed in'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs text-surface-600 dark:text-surface-400 flex items-center space-x-1">
+                                  <ApperIcon name="LogOut" className="w-3 h-3" />
+                                  <span>Sign Out:</span>
+                                </span>
+                                <span className="text-sm font-medium text-surface-900 dark:text-surface-100">
+                                  {todaysRecord?.clockOut || 'Not signed out'}
+                                </span>
+                              </div>
+                            </>
+                          )
+                        })()
+                        }
+
                       </div>
                       
                       <div className="space-y-2">
