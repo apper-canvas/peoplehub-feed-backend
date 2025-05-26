@@ -81,7 +81,41 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
   
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [calendarView, setCalendarView] = useState('month')
-  const [selectedEmployee, setSelectedEmployee] = useState('')
+  const [attendanceRecords, setAttendanceRecords] = useState([
+    {
+      id: '1',
+      employeeId: '1',
+      employeeName: 'Sarah Johnson',
+      date: format(new Date(), 'yyyy-MM-dd'),
+      clockIn: '09:00',
+      clockOut: '17:30',
+      totalHours: 8.5,
+      status: 'Present'
+    },
+    {
+      id: '2', 
+      employeeId: '2',
+      employeeName: 'Michael Chen',
+      date: format(new Date(), 'yyyy-MM-dd'),
+      clockIn: '08:30',
+      clockOut: null,
+      totalHours: 0,
+      status: 'Clocked In'
+    },
+    {
+      id: '3',
+      employeeId: '3', 
+      employeeName: 'Emily Rodriguez',
+      date: format(new Date(Date.now() - 86400000), 'yyyy-MM-dd'),
+      clockIn: '09:15',
+      clockOut: '17:45',
+      totalHours: 8.5,
+      status: 'Present'
+    }
+  ])
+  
+  const [clockedInEmployees, setClockedInEmployees] = useState(new Set(['2']))
+  
   
 
   
@@ -244,7 +278,150 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
       'Finance': 'DollarSign'
     }
     return icons[department] || 'Building'
+
+  // Time clock functions
+  const handleClockIn = (employeeId, employeeName) => {
+    const now = new Date()
+    const timeString = format(now, 'HH:mm')
+    const dateString = format(now, 'yyyy-MM-dd')
+    
+    const newRecord = {
+      id: Date.now().toString(),
+      employeeId,
+      employeeName,
+      date: dateString,
+      clockIn: timeString,
+      clockOut: null,
+      totalHours: 0,
+      status: 'Clocked In'
+    }
+    
+    setAttendanceRecords([...attendanceRecords, newRecord])
+    setClockedInEmployees(new Set([...clockedInEmployees, employeeId]))
+    toast.success(`${employeeName} clocked in at ${timeString}`)
   }
+  
+  const handleClockOut = (employeeId, employeeName) => {
+    const now = new Date()
+    const timeString = format(now, 'HH:mm')
+    const dateString = format(now, 'yyyy-MM-dd')
+    
+    setAttendanceRecords(attendanceRecords.map(record => {
+      if (record.employeeId === employeeId && record.date === dateString && !record.clockOut) {
+        const clockInTime = new Date(`${dateString}T${record.clockIn}:00`)
+        const clockOutTime = new Date(`${dateString}T${timeString}:00`)
+        const totalHours = (clockOutTime - clockInTime) / (1000 * 60 * 60)
+        
+        return {
+          ...record,
+          clockOut: timeString,
+          totalHours: Math.round(totalHours * 100) / 100,
+          status: 'Present'
+        }
+      }
+      return record
+    }))
+    
+    setClockedInEmployees(new Set([...clockedInEmployees].filter(id => id !== employeeId)))
+    toast.success(`${employeeName} clocked out at ${timeString}`)
+  }
+  
+  const getCurrentDayHours = (employeeId) => {
+    const today = format(new Date(), 'yyyy-MM-dd')
+    const todayRecord = attendanceRecords.find(record => 
+      record.employeeId === employeeId && record.date === today
+    )
+    return todayRecord ? todayRecord.totalHours : 0
+  }
+  
+  const handleSubmitTimesheet = (timesheetId) => {
+    setTimesheets(timesheets.map(timesheet => 
+      timesheet.id === timesheetId 
+        ? { ...timesheet, status: 'Submitted', submittedDate: format(new Date(), 'yyyy-MM-dd') }
+        : timesheet
+    ))
+    toast.success('Timesheet submitted successfully!')
+  }
+  
+  const handleApproveTimesheet = (timesheetId) => {
+    setTimesheets(timesheets.map(timesheet => 
+      timesheet.id === timesheetId 
+        ? { ...timesheet, status: 'Approved' }
+        : timesheet
+    ))
+    toast.success('Timesheet approved successfully!')
+  }
+  
+  const getCalendarEvents = () => {
+    const events = []
+    
+    // Add attendance events
+    attendanceRecords.forEach(record => {
+      if (record.status === 'Present') {
+        events.push({
+          id: `attendance-${record.id}`,
+          title: `${record.employeeName} - Present`,
+          start: new Date(`${record.date}T${record.clockIn}:00`),
+          end: new Date(`${record.date}T${record.clockOut}:00`),
+          type: 'attendance'
+        })
+      } else if (record.status === 'Clocked In') {
+        events.push({
+          id: `clocked-in-${record.id}`,
+          title: `${record.employeeName} - Clocked In`,
+          start: new Date(`${record.date}T${record.clockIn}:00`),
+          end: new Date(`${record.date}T23:59:59`),
+          type: 'clocked-in'
+        })
+      }
+    })
+    
+    // Add timesheet events
+    timesheets.forEach(timesheet => {
+      events.push({
+        id: `timesheet-${timesheet.id}`,
+        title: `${timesheet.employeeName} - Timesheet (${timesheet.status})`,
+        start: new Date(timesheet.weekEnding),
+        end: new Date(timesheet.weekEnding),
+        type: timesheet.status.toLowerCase()
+      })
+    })
+    
+    return events
+  }
+  
+  const eventStyleGetter = (event) => {
+    let backgroundColor = '#3174ad'
+    
+    switch (event.type) {
+      case 'attendance':
+        backgroundColor = '#10b981'
+        break
+      case 'clocked-in':
+        backgroundColor = '#f59e0b'
+        break
+      case 'submitted':
+        backgroundColor = '#3b82f6'
+        break
+      case 'approved':
+        backgroundColor = '#059669'
+        break
+      default:
+        backgroundColor = '#6b7280'
+    }
+    
+    return {
+      style: {
+        backgroundColor,
+        borderRadius: '4px',
+        opacity: 0.8,
+        color: 'white',
+        border: '0px',
+        display: 'block'
+      }
+    }
+  }
+  
   const localizer = momentLocalizer(moment)
   
   
