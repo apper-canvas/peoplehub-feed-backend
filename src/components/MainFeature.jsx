@@ -894,7 +894,6 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                     onChange={(e) => setSelectedEmployee(e.target.value)}
                     className="input-field"
                   >
-                    <option value="">All Employees</option>
                     {employees.map(emp => (
                       <option key={emp.id} value={emp.id}>
                         {emp.firstName} {emp.lastName}
@@ -902,15 +901,6 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                     ))}
                   </select>
                 </div>
-                <div className="flex items-end">
-                  <button
-                    onClick={() => setSelectedEmployee('')}
-                    className="btn-secondary px-4 py-2 rounded-lg"
-                  >
-                    Clear Filter
-                  </button>
-                </div>
-              </div>
             </div>
 
             {/* Time Clock Section */}
