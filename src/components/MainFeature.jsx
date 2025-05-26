@@ -1003,37 +1003,32 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                           )
                         })()}
                       </div>
-                      <div className="space-y-2">
-                        <button
-                          onClick={() => handleClockIn(employee.id, `${employee.firstName} ${employee.lastName}`)}
-                          disabled={isEmployeeClockedIn}
-                          className={`w-full py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-                            isEmployeeClockedIn
-                              ? 'bg-surface-100 dark:bg-surface-700 text-surface-400 cursor-not-allowed'
-                              : 'bg-accent/10 text-accent hover:bg-accent/20'
-                          }`}
-                        >
-                          Sign In
-                        </button>
-                        <button
-                          onClick={() => handleClockOut(employee.id, `${employee.firstName} ${employee.lastName}`)}
-                          disabled={!isEmployeeClockedIn}
-                          className={`w-full py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-                            !isEmployeeClockedIn
-                              ? 'bg-surface-100 dark:bg-surface-700 text-surface-400 cursor-not-allowed'
-                              : 'bg-red-50 text-red-600 hover:bg-red-100'
-                          }`}
-                        >
-                          Sign Out
-                        </button>
-                      </div>
-
-
-                      </div>
-
-
-
-
+                      <>
+                        <div className="space-y-2">
+                          <button
+                            onClick={() => handleClockIn(employee.id, `${employee.firstName} ${employee.lastName}`)}
+                            disabled={isEmployeeClockedIn}
+                            className={`w-full py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                              isEmployeeClockedIn
+                                ? 'bg-surface-100 dark:bg-surface-700 text-surface-400 cursor-not-allowed'
+                                : 'bg-accent/10 text-accent hover:bg-accent/20'
+                            }`}
+                          >
+                            Sign In
+                          </button>
+                          <button
+                            onClick={() => handleClockOut(employee.id, `${employee.firstName} ${employee.lastName}`)}
+                            disabled={!isEmployeeClockedIn}
+                            className={`w-full py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                              !isEmployeeClockedIn
+                                ? 'bg-surface-100 dark:bg-surface-700 text-surface-400 cursor-not-allowed'
+                                : 'bg-red-50 text-red-600 hover:bg-red-100'
+                            }`}
+                          >
+                            Sign Out
+                          </button>
+                        </div>
+                      </>
                     </div>
                   )
                 })}
