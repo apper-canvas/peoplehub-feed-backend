@@ -105,7 +105,17 @@ const MainFeature = () => {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [calendarView, setCalendarView] = useState('month')
   const [selectedEmployee, setSelectedEmployee] = useState('')
-  const departments = ['Engineering', 'Product', 'Design', 'Marketing', 'Sales', 'HR', 'Finance']
+  
+
+  
+  // Departments state
+  const [departmentsList, setDepartmentsList] = useState(['Engineering', 'Product', 'Design', 'Marketing', 'Sales', 'HR', 'Finance'])
+  const [showDepartmentForm, setShowDepartmentForm] = useState(false)
+  const [departmentFormData, setDepartmentFormData] = useState({
+    name: '',
+    description: ''
+  })
+
 
   const tabs = [
     { id: 'employees', label: 'Employee Directory', icon: 'Users' },
@@ -191,12 +201,53 @@ const MainFeature = () => {
   }
 
   const getDepartmentStats = () => {
-    return departments.map(dept => ({
+    return departmentsList.map(dept => ({
       name: dept,
       count: employees.filter(emp => emp.department === dept).length,
       icon: getDepartmentIcon(dept)
     }))
   }
+
+
+  // Department management functions
+  const handleDepartmentInputChange = (e) => {
+    setDepartmentFormData({
+      ...departmentFormData,
+      [e.target.name]: e.target.value
+    })
+  }
+
+  const handleDepartmentSubmit = (e) => {
+    e.preventDefault()
+    
+    if (!departmentFormData.name.trim()) {
+      toast.error('Department name is required')
+      return
+    }
+
+    if (departmentsList.includes(departmentFormData.name.trim())) {
+      toast.error('Department already exists')
+      return
+    }
+
+    const newDepartment = departmentFormData.name.trim()
+    setDepartmentsList([...departmentsList, newDepartment])
+    setDepartmentFormData({ name: '', description: '' })
+    setShowDepartmentForm(false)
+    toast.success('Department added successfully!')
+  }
+
+  const handleDeleteDepartment = (deptName) => {
+    const employeesInDept = employees.filter(emp => emp.department === deptName)
+    if (employeesInDept.length > 0) {
+      toast.error(`Cannot delete department. ${employeesInDept.length} employees are assigned to this department.`)
+      return
+    }
+    
+    setDepartmentsList(departmentsList.filter(dept => dept !== deptName))
+    toast.success('Department deleted successfully!')
+  }
+
 
   const getDepartmentIcon = (department) => {
     const icons = {
@@ -698,10 +749,10 @@ const MainFeature = () => {
                     required
                   >
                     <option value="">Select department</option>
-                    {departments.map(dept => (
+                    {departmentsList.map(dept => (
                       <option key={dept} value={dept}>{dept}</option>
                     ))}
-                  </select>
+
                 </div>
               </div>
 
@@ -769,6 +820,18 @@ const MainFeature = () => {
                 View employee distribution across departments
               </p>
             </div>
+            
+            {/* Add Department Button */}
+            <div className="mb-6">
+              <button
+                onClick={() => setShowDepartmentForm(true)}
+                className="btn-primary px-6 py-3 rounded-xl flex items-center space-x-2 shadow-soft hover:shadow-card transition-all duration-200"
+              >
+                <ApperIcon name="Plus" className="w-5 h-5" />
+                <span>Add New Department</span>
+              </button>
+            </div>
+
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {getDepartmentStats().map((dept, index) => (
@@ -796,6 +859,16 @@ const MainFeature = () => {
                     {dept.count === 1 ? 'Employee' : 'Employees'}
                   </p>
                 </motion.div>
+                  <div className="flex items-center space-x-2 mt-4">
+                    <button
+                      onClick={() => handleDeleteDepartment(dept.name)}
+                      className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                      title="Delete Department"
+                    >
+                      <ApperIcon name="Trash2" className="w-4 h-4" />
+                    </button>
+                  </div>
+
               ))}
             </div>
 
@@ -1175,6 +1248,87 @@ const MainFeature = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+        {/* Department Form Modal */}
+        {showDepartmentForm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+            onClick={() => setShowDepartmentForm(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="card p-6 w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-surface-900 dark:text-surface-100">
+                  Add New Department
+                </h3>
+                <button
+                  onClick={() => setShowDepartmentForm(false)}
+                  className="p-2 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
+                >
+                  <ApperIcon name="X" className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleDepartmentSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                    Department Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={departmentFormData.name}
+                    onChange={handleDepartmentInputChange}
+                    className="input-field"
+                    placeholder="Enter department name"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    name="description"
+                    value={departmentFormData.description}
+                    onChange={handleDepartmentInputChange}
+                    className="input-field resize-none"
+                    rows="3"
+                    placeholder="Enter department description (optional)"
+                  />
+                </div>
+
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="submit"
+                    className="btn-primary flex-1 py-3 rounded-lg flex items-center justify-center space-x-2"
+                  >
+                    <ApperIcon name="Plus" className="w-4 h-4" />
+                    <span>Add Department</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowDepartmentForm(false)}
+                    className="btn-secondary flex-1 py-3 rounded-lg flex items-center justify-center space-x-2"
+                  >
+                    <ApperIcon name="X" className="w-4 h-4" />
+                    <span>Cancel</span>
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+
 
     </motion.div>
   )
