@@ -945,13 +945,14 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                           }`}>
                             {isEmployeeClockedIn ? 'Clocked In' : 'Clocked Out'}
                           </span>
+                        </div>
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-surface-600 dark:text-surface-400">Today:</span>
                           <span className="font-medium text-surface-900 dark:text-surface-100">
                             {hoursToday}h
                           </span>
                         </div>
-                      </div>
+
                       
                       {/* Sign In/Out Times */}
                       <div className="space-y-2 mb-4 p-3 bg-surface-50 dark:bg-surface-700/50 rounded-lg">
