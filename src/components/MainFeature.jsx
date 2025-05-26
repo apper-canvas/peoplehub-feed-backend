@@ -985,8 +985,6 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                               </div>
                             </>
                           )
-                        })()}
-                      </div>
 
                       
                       <div className="space-y-2">
