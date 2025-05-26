@@ -992,7 +992,7 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                       <th className="text-left py-3 px-2 font-medium text-surface-900 dark:text-surface-100">Date</th>
                       <th className="text-left py-3 px-2 font-medium text-surface-900 dark:text-surface-100">Clock In</th>
                       <th className="text-left py-3 px-2 font-medium text-surface-900 dark:text-surface-100">Clock Out</th>
-                      <th className="text-left py-3 px-2 font-medium text-surface-900 dark:text-surface-100">Total Hours</th>
+                      <th className="text-left py-3 px-2 font-medium text-surface-900 dark:text-surface-100">Today</th>
                       <th className="text-left py-3 px-2 font-medium text-surface-900 dark:text-surface-100">Status</th>
                     </tr>
                   </thead>
