@@ -986,7 +986,7 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                             </>
                           )
                         })()
-                        })()}
+
 
 
 
