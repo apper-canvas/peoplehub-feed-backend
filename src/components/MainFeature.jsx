@@ -8,8 +8,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css'
 import { format } from 'date-fns'
 import ApperIcon from './ApperIcon'
 
-const MainFeature = () => {
-  const [activeTab, setActiveTab] = useState('employees')
+const MainFeature = ({ activeTab, setActiveTab }) => {
   const [employees, setEmployees] = useState([
     {
       id: '1',
@@ -544,7 +543,7 @@ const MainFeature = () => {
         <nav className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-8 overflow-x-auto">
           {tabs.map((tab) => (
             <button
-              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center space-x-2 px-4 py-3 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
                 activeTab === tab.id

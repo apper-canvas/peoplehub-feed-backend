@@ -4,6 +4,8 @@ import ApperIcon from '../components/ApperIcon'
 import MainFeature from '../components/MainFeature'
 
 const Home = () => {
+  const [activeTab, setActiveTab] = useState('employees')
+
   const [darkMode, setDarkMode] = useState(false)
 
   const toggleDarkMode = () => {
@@ -119,9 +121,13 @@ const Home = () => {
             transition={{ delay: 0.8 }}
             className="flex flex-col sm:flex-row gap-4 justify-center mb-12 sm:mb-16"
           >
-            <button className="btn-primary px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-xl flex items-center justify-center space-x-2 shadow-soft hover:shadow-card transition-shadow">
+            <button 
+              onClick={() => setActiveTab('add')}
+              className="btn-primary px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-xl flex items-center justify-center space-x-2 shadow-soft hover:shadow-card transition-shadow"
+            >
               <ApperIcon name="UserPlus" className="w-5 h-5" />
               <span>Add Employee</span>
+            </button>
             </button>
             <button className="btn-secondary px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-xl flex items-center justify-center space-x-2 shadow-soft hover:shadow-card transition-shadow">
               <ApperIcon name="FileText" className="w-5 h-5" />
@@ -139,7 +145,7 @@ const Home = () => {
         className="py-8 sm:py-12"
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <MainFeature />
+          <MainFeature activeTab={activeTab} setActiveTab={setActiveTab} />
         </div>
       </motion.section>
 
