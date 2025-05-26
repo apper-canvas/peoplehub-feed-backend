@@ -938,18 +938,6 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
             </div>
 
 
-            <div className="card p-4 mb-6">
-              <div className="relative">
-                <ApperIcon name="Search" className="absolute left-4 top-1/2 transform -translate-y-1/2 text-surface-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search employees by name, position, or department..."
-                  value={attendanceSearchTerm}
-                  onChange={(e) => setAttendanceSearchTerm(e.target.value)}
-                  className="input-field pl-12 w-full"
-                />
-              </div>
-            </div>
 
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1024,8 +1012,9 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                               </div>
                             </>
                           )
+                        })()}
+                      </div>
 
-                      <div className="space-y-2">
                         <button
                           onClick={() => handleClockIn(employee.id, `${employee.firstName} ${employee.lastName}`)}
                           disabled={isEmployeeClockedIn}
