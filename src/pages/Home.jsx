@@ -1,10 +1,13 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { toast } from 'react-toastify'
+
 import ApperIcon from '../components/ApperIcon'
 import MainFeature from '../components/MainFeature'
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState('employees')
+  const [showGenerateModal, setShowGenerateModal] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const [darkMode, setDarkMode] = useState(false)
 
@@ -20,7 +23,170 @@ const Home = () => {
     { label: "This Month Hires", value: "8", icon: "UserPlus" }
   ]
 
-  return (
+
+  const departments = ['Engineering', 'Sales', 'HR', 'Marketing', 'Finance']
+  
+  const reportTypes = [
+    { id: 'employee', name: 'Employee Reports', description: 'Comprehensive employee data and performance metrics' },
+    { id: 'attendance', name: 'Attendance Reports', description: 'Time tracking and attendance analytics' },
+    { id: 'payroll', name: 'Payroll Reports', description: 'Salary and compensation reports' },
+    { id: 'performance', name: 'Performance Reports', description: 'Performance reviews and goal tracking' },
+    { id: 'department', name: 'Department Reports', description: 'Department-wise analytics and insights' }
+  ]
+
+  const handleGenerateReport = async (reportData) => {
+    setLoading(true)
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      setShowGenerateModal(false)
+      toast.success('Report generation started successfully!')
+      
+      // Simulate completion after 3 seconds
+      setTimeout(() => {
+        toast.success('Report generated successfully! Check your downloads.')
+      }, 3000)
+      
+    } catch (error) {
+      toast.error('Failed to generate report. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const GenerateReportModal = () => {
+    const [formData, setFormData] = useState({
+      title: '',
+      type: 'employee',
+      department: 'Engineering',
+      dateStart: '',
+      dateEnd: ''
+    })
+
+    const handleSubmit = (e) => {
+      e.preventDefault()
+      if (!formData.title || !formData.dateStart || !formData.dateEnd) {
+        toast.error('Please fill in all required fields')
+        return
+      }
+      if (new Date(formData.dateStart) > new Date(formData.dateEnd)) {
+        toast.error('Start date must be before end date')
+        return
+      }
+      handleGenerateReport(formData)
+    }
+
+    return (
+      <div className="modal-overlay">
+        <div className="modal-content p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-surface-900 dark:text-surface-100">Generate New Report</h3>
+            <button
+              onClick={() => setShowGenerateModal(false)}
+              className="p-2 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
+            >
+              <ApperIcon name="X" className="w-5 h-5" />
+            </button>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                Report Title *
+              </label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                className="input-field"
+                placeholder="Enter report title"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                Report Type *
+              </label>
+              <select
+                value={formData.type}
+                onChange={(e) => setFormData({...formData, type: e.target.value})}
+                className="input-field"
+                required
+              >
+                {reportTypes.map(type => (
+                  <option key={type.id} value={type.id}>{type.name}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                Department *
+              </label>
+              <select
+                value={formData.department}
+                onChange={(e) => setFormData({...formData, department: e.target.value})}
+                className="input-field"
+                required
+              >
+                {departments.map(dept => (
+                  <option key={dept} value={dept}>{dept}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                  Start Date *
+                </label>
+                <input
+                  type="date"
+                  value={formData.dateStart}
+                  onChange={(e) => setFormData({...formData, dateStart: e.target.value})}
+                  className="input-field"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                  End Date *
+                </label>
+                <input
+                  type="date"
+                  value={formData.dateEnd}
+                  onChange={(e) => setFormData({...formData, dateEnd: e.target.value})}
+                  className="input-field"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 pt-4">
+              <button
+                type="button"
+                onClick={() => setShowGenerateModal(false)}
+                className="px-4 py-2 text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary flex items-center space-x-2"
+              >
+                {loading && <ApperIcon name="Loader" className="w-4 h-4 animate-spin" />}
+                <span>{loading ? 'Generating...' : 'Generate Report'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
     <div className="min-h-screen">
       {/* Header */}
       <motion.header 
@@ -128,7 +294,17 @@ const Home = () => {
               <ApperIcon name="UserPlus" className="w-5 h-5" />
               <span>Add Employee</span>
             </button>
-            <button className="btn-secondary px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-xl flex items-center justify-center space-x-2 shadow-soft hover:shadow-card transition-shadow">
+            <button 
+              onClick={() => setActiveTab('add')}
+              className="btn-primary px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-xl flex items-center justify-center space-x-2 shadow-soft hover:shadow-card transition-shadow"
+            >
+              <ApperIcon name="UserPlus" className="w-5 h-5" />
+              <span>Add Employee</span>
+            </button>
+            <button 
+              onClick={() => setShowGenerateModal(true)}
+              className="btn-secondary px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-xl flex items-center justify-center space-x-2 shadow-soft hover:shadow-card transition-shadow"
+            >
               <ApperIcon name="FileText" className="w-5 h-5" />
               <span>Generate Report</span>
             </button>
@@ -188,7 +364,10 @@ const Home = () => {
             <p>&copy; 2024 PeopleHub. All rights reserved.</p>
           </div>
         </div>
-      </motion.footer>
+
+      {/* Generate Report Modal */}
+      {showGenerateModal && <GenerateReportModal />}
+
     </div>
   )
 }
