@@ -581,72 +581,104 @@ const MainFeature = () => {
               />
             </div>
 
-            {/* Employee Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-              {filteredEmployees.map((employee, index) => (
-                <motion.div
-                  key={employee.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="card p-4 sm:p-6 hover:shadow-soft transition-shadow duration-300 group"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
-                        <span className="text-white font-semibold text-lg">
-                          {employee.firstName[0]}{employee.lastName[0]}
-                        </span>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-surface-900 dark:text-surface-100">
-                          {employee.firstName} {employee.lastName}
-                        </h3>
-                        <p className="text-sm text-surface-600 dark:text-surface-400">
+
+            {/* Employee Table */}
+            <div className="card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-surface-50 dark:bg-surface-700">
+                    <tr>
+                      <th className="text-left py-4 px-6 font-medium text-surface-900 dark:text-surface-100">Employee</th>
+                      <th className="text-left py-4 px-6 font-medium text-surface-900 dark:text-surface-100">Position</th>
+                      <th className="text-left py-4 px-6 font-medium text-surface-900 dark:text-surface-100">Department</th>
+                      <th className="text-left py-4 px-6 font-medium text-surface-900 dark:text-surface-100">Email</th>
+                      <th className="text-left py-4 px-6 font-medium text-surface-900 dark:text-surface-100">Hire Date</th>
+                      <th className="text-left py-4 px-6 font-medium text-surface-900 dark:text-surface-100">Status</th>
+                      <th className="text-left py-4 px-6 font-medium text-surface-900 dark:text-surface-100">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredEmployees.map((employee, index) => (
+                      <motion.tr
+                        key={employee.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="border-b border-surface-100 dark:border-surface-800 hover:bg-surface-50 dark:hover:bg-surface-700/50 transition-colors"
+                      >
+                        <td className="py-4 px-6">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center flex-shrink-0">
+                              <span className="text-white font-semibold text-sm">
+                                {employee.firstName[0]}{employee.lastName[0]}
+                              </span>
+                            </div>
+                            <div className="min-w-0">
+                              <h3 className="font-semibold text-surface-900 dark:text-surface-100 truncate">
+                                {employee.firstName} {employee.lastName}
+                              </h3>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6 text-surface-600 dark:text-surface-400">
                           {employee.position}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="px-2 py-1 bg-accent/10 text-accent text-xs font-medium rounded-full">
-                      {employee.status}
-                    </span>
-                  </div>
-
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center space-x-2 text-sm">
-                      <ApperIcon name="Mail" className="w-4 h-4 text-surface-400" />
-                      <span className="text-surface-600 dark:text-surface-400 truncate">{employee.email}</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm">
-                      <ApperIcon name="Building" className="w-4 h-4 text-surface-400" />
-                      <span className="text-surface-600 dark:text-surface-400">{employee.department}</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm">
-                      <ApperIcon name="Calendar" className="w-4 h-4 text-surface-400" />
-                      <span className="text-surface-600 dark:text-surface-400">
-                        Hired {format(new Date(employee.hireDate), 'MMM dd, yyyy')}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleEdit(employee)}
-                      className="flex-1 py-2 px-3 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center justify-center space-x-2 text-sm"
-                    >
-                      <ApperIcon name="Edit" className="w-4 h-4" />
-                      <span>Edit</span>
-                    </button>
-                    <button
-                      onClick={() => handleDelete(employee.id)}
-                      className="py-2 px-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-                    >
-                      <ApperIcon name="Trash2" className="w-4 h-4" />
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
+                        </td>
+                        <td className="py-4 px-6 text-surface-600 dark:text-surface-400">
+                          <div className="flex items-center space-x-2">
+                            <ApperIcon name="Building" className="w-4 h-4 text-surface-400" />
+                            <span>{employee.department}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6 text-surface-600 dark:text-surface-400">
+                          <div className="flex items-center space-x-2">
+                            <ApperIcon name="Mail" className="w-4 h-4 text-surface-400" />
+                            <span className="truncate max-w-[200px]">{employee.email}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6 text-surface-600 dark:text-surface-400">
+                          <div className="flex items-center space-x-2">
+                            <ApperIcon name="Calendar" className="w-4 h-4 text-surface-400" />
+                            <span>{format(new Date(employee.hireDate), 'MMM dd, yyyy')}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="px-3 py-1 bg-accent/10 text-accent text-xs font-medium rounded-full">
+                            {employee.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => handleEdit(employee)}
+                              className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors"
+                              title="Edit Employee"
+                            >
+                              <ApperIcon name="Edit" className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(employee.id)}
+                              className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                              title="Delete Employee"
+                            >
+                              <ApperIcon name="Trash2" className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
+
+            {filteredEmployees.length === 0 && (
+              <div className="text-center py-12">
+                <ApperIcon name="Users" className="w-16 h-16 text-surface-400 mx-auto mb-4" />
+                <p className="text-surface-600 dark:text-surface-400">
+                  {searchTerm ? 'No employees found matching your search.' : 'No employees added yet.'}
+                </p>
+              </div>
+            )}
 
             {filteredEmployees.length === 0 && (
               <div className="text-center py-12">
