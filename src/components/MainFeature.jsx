@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-toastify'
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, parseISO } from 'date-fns'
+import { Calendar, momentLocalizer } from 'react-big-calendar'
+import moment from 'moment'
+import 'react-big-calendar/lib/css/react-big-calendar.css'
 import { format } from 'date-fns'
 import ApperIcon from './ApperIcon'
 
@@ -51,13 +55,64 @@ const MainFeature = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingEmployee, setEditingEmployee] = useState(null)
-
+  const [editingEmployee, setEditingEmployee] = useState(null)
+  
+  // Attendance-related state
+  const [clockedInEmployees, setClockedInEmployees] = useState(new Set())
+  const [attendanceRecords, setAttendanceRecords] = useState([
+    {
+      id: '1',
+      employeeId: '1',
+      employeeName: 'Sarah Johnson',
+      date: format(new Date(), 'yyyy-MM-dd'),
+      clockIn: '09:00',
+      clockOut: '17:30',
+      totalHours: 8.5,
+      status: 'Present'
+    },
+    {
+      id: '2',
+      employeeId: '2',
+      employeeName: 'Michael Chen',
+      date: format(new Date(), 'yyyy-MM-dd'),
+      clockIn: '08:45',
+      clockOut: null,
+      totalHours: 0,
+      status: 'Clocked In'
+    }
+  ])
+  
+  const [timesheets, setTimesheets] = useState([
+    {
+      id: '1',
+      employeeId: '1',
+      employeeName: 'Sarah Johnson',
+      weekEnding: format(endOfWeek(new Date()), 'yyyy-MM-dd'),
+      totalHours: 40,
+      regularHours: 40,
+      overtimeHours: 0,
+      status: 'Submitted',
+      submittedDate: format(new Date(), 'yyyy-MM-dd'),
+      entries: [
+        { date: '2024-01-15', hours: 8, type: 'Regular' },
+        { date: '2024-01-16', hours: 8, type: 'Regular' },
+        { date: '2024-01-17', hours: 8, type: 'Regular' },
+        { date: '2024-01-18', hours: 8, type: 'Regular' },
+        { date: '2024-01-19', hours: 8, type: 'Regular' }
+      ]
+    }
+  ])
+  
+  const [selectedDate, setSelectedDate] = useState(new Date())
+  const [calendarView, setCalendarView] = useState('month')
+  const [selectedEmployee, setSelectedEmployee] = useState('')
   const departments = ['Engineering', 'Product', 'Design', 'Marketing', 'Sales', 'HR', 'Finance']
 
   const tabs = [
     { id: 'employees', label: 'Employee Directory', icon: 'Users' },
     { id: 'add', label: 'Add Employee', icon: 'UserPlus' },
-    { id: 'departments', label: 'Departments', icon: 'Building' }
+    { id: 'departments', label: 'Departments', icon: 'Building' },
+    { id: 'attendance', label: 'Attendance', icon: 'Clock' }
   ]
 
   const filteredEmployees = employees.filter(employee =>
@@ -156,6 +211,275 @@ const MainFeature = () => {
     }
     return icons[department] || 'Building'
   }
+  const localizer = momentLocalizer(moment)
+  
+  // Attendance functions
+  const handleClockIn = (employeeId, employeeName) => {
+    if (clockedInEmployees.has(employeeId)) {
+      toast.warning('Employee is already clocked in')
+      return
+    }
+    
+    const now = new Date()
+    const newRecord = {
+      id: Date.now().toString(),
+      employeeId,
+      employeeName,
+      date: format(now, 'yyyy-MM-dd'),
+      clockIn: format(now, 'HH:mm'),
+      clockOut: null,
+      totalHours: 0,
+      status: 'Clocked In'
+    }
+    
+    setAttendanceRecords(prev => [...prev, newRecord])
+    setClockedInEmployees(prev => new Set([...prev, employeeId]))
+    toast.success(`${employeeName} clocked in successfully`)
+  }
+  
+  const handleClockOut = (employeeId, employeeName) => {
+    if (!clockedInEmployees.has(employeeId)) {
+      toast.warning('Employee is not clocked in')
+      return
+    }
+    
+    const now = new Date()
+    const clockOutTime = format(now, 'HH:mm')
+    
+    setAttendanceRecords(prev => prev.map(record => {
+      if (record.employeeId === employeeId && record.clockOut === null) {
+        const clockInTime = new Date(`${record.date} ${record.clockIn}`)
+        const clockOutTimeDate = new Date(`${record.date} ${clockOutTime}`)
+        const totalHours = (clockOutTimeDate - clockInTime) / (1000 * 60 * 60)
+        
+        return {
+          ...record,
+          clockOut: clockOutTime,
+          totalHours: Math.round(totalHours * 100) / 100,
+          status: 'Present'
+        }
+      }
+      return record
+    }))
+    
+    setClockedInEmployees(prev => {
+      const newSet = new Set(prev)
+      newSet.delete(employeeId)
+      return newSet
+    })
+    
+    // Auto-generate timesheet entry
+    generateTimesheetEntry(employeeId, employeeName)
+    toast.success(`${employeeName} clocked out successfully`)
+  }
+  
+  const generateTimesheetEntry = (employeeId, employeeName) => {
+    const today = new Date()
+    const weekEnding = endOfWeek(today)
+    const weekEndingStr = format(weekEnding, 'yyyy-MM-dd')
+    
+    // Find today's attendance record
+    const todayRecord = attendanceRecords.find(record => 
+      record.employeeId === employeeId && 
+      record.date === format(today, 'yyyy-MM-dd') &&
+      record.totalHours > 0
+    )
+    
+    if (!todayRecord) return
+    
+    setTimesheets(prev => {
+      const existingTimesheet = prev.find(ts => 
+        ts.employeeId === employeeId && ts.weekEnding === weekEndingStr
+      )
+      
+      if (existingTimesheet) {
+        // Update existing timesheet
+        return prev.map(ts => {
+          if (ts.id === existingTimesheet.id) {
+            const updatedEntries = [...ts.entries]
+            const entryIndex = updatedEntries.findIndex(entry => entry.date === todayRecord.date)
+            
+            if (entryIndex >= 0) {
+              updatedEntries[entryIndex] = {
+                date: todayRecord.date,
+                hours: todayRecord.totalHours,
+                type: todayRecord.totalHours > 8 ? 'Overtime' : 'Regular'
+              }
+            } else {
+              updatedEntries.push({
+                date: todayRecord.date,
+                hours: todayRecord.totalHours,
+                type: todayRecord.totalHours > 8 ? 'Overtime' : 'Regular'
+              })
+            }
+            
+            const totalHours = updatedEntries.reduce((sum, entry) => sum + entry.hours, 0)
+            const regularHours = Math.min(totalHours, 40)
+            const overtimeHours = Math.max(totalHours - 40, 0)
+            
+            return {
+              ...ts,
+              entries: updatedEntries,
+              totalHours,
+              regularHours,
+              overtimeHours
+            }
+          }
+          return ts
+        })
+      } else {
+        // Create new timesheet
+        const newTimesheet = {
+          id: Date.now().toString(),
+          employeeId,
+          employeeName,
+          weekEnding: weekEndingStr,
+          totalHours: todayRecord.totalHours,
+          regularHours: Math.min(todayRecord.totalHours, 8),
+          overtimeHours: Math.max(todayRecord.totalHours - 8, 0),
+          status: 'Draft',
+          submittedDate: null,
+          entries: [{
+            date: todayRecord.date,
+            hours: todayRecord.totalHours,
+            type: todayRecord.totalHours > 8 ? 'Overtime' : 'Regular'
+          }]
+        }
+        
+        return [...prev, newTimesheet]
+      }
+    })
+  }
+  
+  const handleSubmitTimesheet = (timesheetId) => {
+    setTimesheets(prev => prev.map(ts => {
+      if (ts.id === timesheetId) {
+        return {
+          ...ts,
+          status: 'Submitted',
+          submittedDate: format(new Date(), 'yyyy-MM-dd')
+        }
+      }
+      return ts
+    }))
+    toast.success('Timesheet submitted successfully')
+  }
+  
+  const handleApproveTimesheet = (timesheetId) => {
+    setTimesheets(prev => prev.map(ts => {
+      if (ts.id === timesheetId) {
+        return {
+          ...ts,
+          status: 'Approved'
+        }
+      }
+      return ts
+    }))
+    toast.success('Timesheet approved successfully')
+  }
+  
+  const getCalendarEvents = () => {
+    const events = []
+    
+    // Add attendance events
+    attendanceRecords.forEach(record => {
+      if (record.status === 'Present') {
+        events.push({
+          id: `attendance-${record.id}`,
+          title: `${record.employeeName} - ${record.totalHours}h`,
+          start: new Date(`${record.date} ${record.clockIn}`),
+          end: new Date(`${record.date} ${record.clockOut}`),
+          resource: {
+            type: 'attendance',
+            data: record
+          }
+        })
+      } else if (record.status === 'Clocked In') {
+        events.push({
+          id: `clocked-in-${record.id}`,
+          title: `${record.employeeName} - Clocked In`,
+          start: new Date(`${record.date} ${record.clockIn}`),
+          end: new Date(`${record.date} ${record.clockIn}`),
+          allDay: false,
+          resource: {
+            type: 'clocked-in',
+            data: record
+          }
+        })
+      }
+    })
+    
+    // Add timesheet events
+    timesheets.forEach(timesheet => {
+      const weekStart = startOfWeek(new Date(timesheet.weekEnding))
+      events.push({
+        id: `timesheet-${timesheet.id}`,
+        title: `${timesheet.employeeName} - Timesheet (${timesheet.status})`,
+        start: weekStart,
+        end: new Date(timesheet.weekEnding),
+        allDay: true,
+        resource: {
+          type: 'timesheet',
+          data: timesheet
+        }
+      })
+    })
+    
+    return events
+  }
+  
+  const eventStyleGetter = (event) => {
+    let backgroundColor = '#3174ad'
+    
+    if (event.resource?.type === 'attendance') {
+      backgroundColor = '#10b981'
+    } else if (event.resource?.type === 'clocked-in') {
+      backgroundColor = '#f59e0b'
+    } else if (event.resource?.type === 'timesheet') {
+      const status = event.resource.data.status
+      if (status === 'Draft') backgroundColor = '#6b7280'
+      else if (status === 'Submitted') backgroundColor = '#3b82f6'
+      else if (status === 'Approved') backgroundColor = '#10b981'
+    }
+    
+    return {
+      style: {
+        backgroundColor,
+        borderRadius: '4px',
+        opacity: 0.8,
+        color: 'white',
+        border: '0px',
+        display: 'block'
+      }
+    }
+  }
+  
+  const getCurrentDayHours = (employeeId) => {
+    const today = format(new Date(), 'yyyy-MM-dd')
+    const todayRecord = attendanceRecords.find(record => 
+      record.employeeId === employeeId && record.date === today
+    )
+    
+    if (!todayRecord) return 0
+    
+    if (todayRecord.clockOut) {
+      return todayRecord.totalHours
+    } else if (todayRecord.clockIn) {
+      const now = new Date()
+      const clockInTime = new Date(`${today} ${todayRecord.clockIn}`)
+      return Math.round(((now - clockInTime) / (1000 * 60 * 60)) * 100) / 100
+    }
+    
+    return 0
+  }
+  
+  const filteredAttendanceRecords = selectedEmployee ? 
+    attendanceRecords.filter(record => record.employeeId === selectedEmployee) : 
+    attendanceRecords
+  
+  const filteredTimesheets = selectedEmployee ? 
+    timesheets.filter(timesheet => timesheet.employeeId === selectedEmployee) : 
+    timesheets
 
   return (
     <motion.div
@@ -501,7 +825,357 @@ const MainFeature = () => {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+        )}
+        
+        {/* Attendance Tab */}
+        {activeTab === 'attendance' && (
+          <motion.div
+            key="attendance"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-6"
+          >
+            {/* Attendance Header */}
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-surface-900 dark:text-surface-100 mb-2">
+                Attendance Tracking
+              </h2>
+              <p className="text-surface-600 dark:text-surface-400">
+                Manage employee time tracking, timesheets, and attendance records
+              </p>
+            </div>
+
+            {/* Employee Filter */}
+            <div className="card p-4">
+              <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                    Filter by Employee
+                  </label>
+                  <select
+                    value={selectedEmployee}
+                    onChange={(e) => setSelectedEmployee(e.target.value)}
+                    className="input-field"
+                  >
+                    <option value="">All Employees</option>
+                    {employees.map(emp => (
+                      <option key={emp.id} value={emp.id}>
+                        {emp.firstName} {emp.lastName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  <button
+                    onClick={() => setSelectedEmployee('')}
+                    className="btn-secondary px-4 py-2 rounded-lg"
+                  >
+                    Clear Filter
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Time Clock Section */}
+            <div className="card p-6">
+              <h3 className="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-4 flex items-center space-x-2">
+                <ApperIcon name="Clock" className="w-5 h-5" />
+                <span>Time Clock</span>
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {employees.map(employee => {
+                  const isEmployeeClockedIn = clockedInEmployees.has(employee.id)
+                  const hoursToday = getCurrentDayHours(employee.id)
+                  
+                  return (
+                    <div key={employee.id} className="border border-surface-200 dark:border-surface-700 rounded-lg p-4">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
+                          <span className="text-white font-semibold text-sm">
+                            {employee.firstName[0]}{employee.lastName[0]}
+                          </span>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-surface-900 dark:text-surface-100">
+                            {employee.firstName} {employee.lastName}
+                          </h4>
+                          <p className="text-xs text-surface-600 dark:text-surface-400">
+                            {employee.position}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2 mb-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-surface-600 dark:text-surface-400">Status:</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            isEmployeeClockedIn 
+                              ? 'bg-yellow-100 text-yellow-800' 
+                              : 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400'
+                          }`}>
+                            {isEmployeeClockedIn ? 'Clocked In' : 'Clocked Out'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-surface-600 dark:text-surface-400">Today:</span>
+                          <span className="font-medium text-surface-900 dark:text-surface-100">
+                            {hoursToday}h
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => handleClockIn(employee.id, `${employee.firstName} ${employee.lastName}`)}
+                          disabled={isEmployeeClockedIn}
+                          className={`w-full py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                            isEmployeeClockedIn
+                              ? 'bg-surface-100 dark:bg-surface-700 text-surface-400 cursor-not-allowed'
+                              : 'bg-accent/10 text-accent hover:bg-accent/20'
+                          }`}
+                        >
+                          Clock In
+                        </button>
+                        <button
+                          onClick={() => handleClockOut(employee.id, `${employee.firstName} ${employee.lastName}`)}
+                          disabled={!isEmployeeClockedIn}
+                          className={`w-full py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                            !isEmployeeClockedIn
+                              ? 'bg-surface-100 dark:bg-surface-700 text-surface-400 cursor-not-allowed'
+                              : 'bg-red-50 text-red-600 hover:bg-red-100'
+                          }`}
+                        >
+                          Clock Out
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Attendance Records */}
+            <div className="card p-6">
+              <h3 className="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-4 flex items-center space-x-2">
+                <ApperIcon name="Calendar" className="w-5 h-5" />
+                <span>Attendance Records</span>
+              </h3>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="border-b border-surface-200 dark:border-surface-700">
+                    <tr>
+                      <th className="text-left py-3 px-2 font-medium text-surface-900 dark:text-surface-100">Employee</th>
+                      <th className="text-left py-3 px-2 font-medium text-surface-900 dark:text-surface-100">Date</th>
+                      <th className="text-left py-3 px-2 font-medium text-surface-900 dark:text-surface-100">Clock In</th>
+                      <th className="text-left py-3 px-2 font-medium text-surface-900 dark:text-surface-100">Clock Out</th>
+                      <th className="text-left py-3 px-2 font-medium text-surface-900 dark:text-surface-100">Total Hours</th>
+                      <th className="text-left py-3 px-2 font-medium text-surface-900 dark:text-surface-100">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredAttendanceRecords.slice(0, 10).map(record => (
+                      <tr key={record.id} className="border-b border-surface-100 dark:border-surface-800">
+                        <td className="py-3 px-2 text-surface-900 dark:text-surface-100">
+                          {record.employeeName}
+                        </td>
+                        <td className="py-3 px-2 text-surface-600 dark:text-surface-400">
+                          {format(new Date(record.date), 'MMM dd, yyyy')}
+                        </td>
+                        <td className="py-3 px-2 text-surface-600 dark:text-surface-400">
+                          {record.clockIn}
+                        </td>
+                        <td className="py-3 px-2 text-surface-600 dark:text-surface-400">
+                          {record.clockOut || '-'}
+                        </td>
+                        <td className="py-3 px-2 text-surface-600 dark:text-surface-400">
+                          {record.totalHours > 0 ? `${record.totalHours}h` : '-'}
+                        </td>
+                        <td className="py-3 px-2">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            record.status === 'Present' ? 'bg-green-100 text-green-800' :
+                            record.status === 'Clocked In' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400'
+                          }`}>
+                            {record.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                
+                {filteredAttendanceRecords.length === 0 && (
+                  <div className="text-center py-8">
+                    <ApperIcon name="Calendar" className="w-12 h-12 text-surface-400 mx-auto mb-3" />
+                    <p className="text-surface-600 dark:text-surface-400">
+                      No attendance records found
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Timesheets Section */}
+            <div className="card p-6">
+              <h3 className="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-4 flex items-center space-x-2">
+                <ApperIcon name="FileText" className="w-5 h-5" />
+                <span>Timesheets</span>
+              </h3>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {filteredTimesheets.map(timesheet => (
+                  <div key={timesheet.id} className="border border-surface-200 dark:border-surface-700 rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h4 className="font-medium text-surface-900 dark:text-surface-100">
+                          {timesheet.employeeName}
+                        </h4>
+                        <p className="text-sm text-surface-600 dark:text-surface-400">
+                          Week ending {format(new Date(timesheet.weekEnding), 'MMM dd, yyyy')}
+                        </p>
+                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        timesheet.status === 'Draft' ? 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400' :
+                        timesheet.status === 'Submitted' ? 'bg-blue-100 text-blue-800' :
+                        timesheet.status === 'Approved' ? 'bg-green-100 text-green-800' :
+                        'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400'
+                      }`}>
+                        {timesheet.status}
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-surface-600 dark:text-surface-400">Total Hours:</span>
+                        <span className="font-medium text-surface-900 dark:text-surface-100">{timesheet.totalHours}h</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-surface-600 dark:text-surface-400">Regular:</span>
+                        <span className="text-surface-900 dark:text-surface-100">{timesheet.regularHours}h</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-surface-600 dark:text-surface-400">Overtime:</span>
+                        <span className="text-surface-900 dark:text-surface-100">{timesheet.overtimeHours}h</span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {timesheet.status === 'Draft' && (
+                        <button
+                          onClick={() => handleSubmitTimesheet(timesheet.id)}
+                          className="w-full py-2 px-3 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors text-sm font-medium"
+                        >
+                          Submit Timesheet
+                        </button>
+                      )}
+                      {timesheet.status === 'Submitted' && (
+                        <button
+                          onClick={() => handleApproveTimesheet(timesheet.id)}
+                          className="w-full py-2 px-3 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors text-sm font-medium"
+                        >
+                          Approve Timesheet
+                        </button>
+                      )}
+                      {timesheet.status === 'Approved' && (
+                        <div className="w-full py-2 px-3 bg-green-50 text-green-700 rounded-lg text-sm font-medium text-center">
+                          ✓ Approved
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {filteredTimesheets.length === 0 && (
+                <div className="text-center py-8">
+                  <ApperIcon name="FileText" className="w-12 h-12 text-surface-400 mx-auto mb-3" />
+                  <p className="text-surface-600 dark:text-surface-400">
+                    No timesheets found
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Calendar View */}
+            <div className="card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-surface-900 dark:text-surface-100 flex items-center space-x-2">
+                  <ApperIcon name="CalendarDays" className="w-5 h-5" />
+                  <span>Calendar View</span>
+                </h3>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setCalendarView('month')}
+                    className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                      calendarView === 'month'
+                        ? 'bg-primary text-white'
+                        : 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-600'
+                    }`}
+                  >
+                    Month
+                  </button>
+                  <button
+                    onClick={() => setCalendarView('week')}
+                    className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                      calendarView === 'week'
+                        ? 'bg-primary text-white'
+                        : 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-600'
+                    }`}
+                  >
+                    Week
+                  </button>
+                </div>
+              </div>
+              
+              <div className="h-96 border border-surface-200 dark:border-surface-700 rounded-lg overflow-hidden">
+                <Calendar
+                  localizer={localizer}
+                  events={getCalendarEvents()}
+                  startAccessor="start"
+                  endAccessor="end"
+                  view={calendarView}
+                  onView={setCalendarView}
+                  date={selectedDate}
+                  onNavigate={setSelectedDate}
+                  eventPropGetter={eventStyleGetter}
+                  className="h-full"
+                  popup
+                  views={['month', 'week', 'day']}
+                  step={60}
+                  showMultiDayTimes
+                  style={{
+                    height: '100%',
+                    color: 'var(--text-primary)',
+                    backgroundColor: 'transparent'
+                  }}
+                />
+              </div>
+              
+              {/* Legend */}
+              <div className="mt-4 flex flex-wrap gap-4 text-sm">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-green-500 rounded"></div>
+                  <span className="text-surface-600 dark:text-surface-400">Attendance</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-yellow-500 rounded"></div>
+                  <span className="text-surface-600 dark:text-surface-400">Clocked In</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                  <span className="text-surface-600 dark:text-surface-400">Timesheet (Submitted)</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-green-600 rounded"></div>
+                  <span className="text-surface-600 dark:text-surface-400">Timesheet (Approved)</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
     </motion.div>
   )
 }
