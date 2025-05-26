@@ -889,9 +889,6 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
             <div className="card p-4">
               <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
-                    Filter by Employee
-                  </label>
                   <select
                     value={selectedEmployee}
                     onChange={(e) => setSelectedEmployee(e.target.value)}
