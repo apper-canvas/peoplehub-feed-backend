@@ -902,6 +902,7 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                   </select>
                 </div>
             </div>
+            </div>
 
             {/* Time Clock Section */}
             <div className="card p-6">
