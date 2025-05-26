@@ -752,6 +752,7 @@ const MainFeature = () => {
                     {departmentsList.map(dept => (
                       <option key={dept} value={dept}>{dept}</option>
                     ))}
+                  </select>
 
                 </div>
               </div>
@@ -858,7 +859,6 @@ const MainFeature = () => {
                   <p className="text-sm text-surface-600 dark:text-surface-400">
                     {dept.count === 1 ? 'Employee' : 'Employees'}
                   </p>
-                </motion.div>
                   <div className="flex items-center space-x-2 mt-4">
                     <button
                       onClick={() => handleDeleteDepartment(dept.name)}
@@ -868,6 +868,7 @@ const MainFeature = () => {
                       <ApperIcon name="Trash2" className="w-4 h-4" />
                     </button>
                   </div>
+                </motion.div>
 
               ))}
             </div>
