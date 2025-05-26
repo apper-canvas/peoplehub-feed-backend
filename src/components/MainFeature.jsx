@@ -335,6 +335,7 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
       record.employeeId === employeeId && record.date === today
     )
     return todayRecord ? todayRecord.totalHours : 0
+  }
   
   const getTodaysAttendanceRecord = (employeeId) => {
     const today = format(new Date(), 'yyyy-MM-dd')
@@ -342,6 +343,7 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
       record.employeeId === employeeId && record.date === today
     )
   }
+
 
   
   const handleSubmitTimesheet = (timesheetId) => {
@@ -984,7 +986,8 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                             </>
                           )
                         })()
-                        }
+                        })()}
+
 
                       </div>
                       
