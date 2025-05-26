@@ -116,6 +116,7 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
   
   const [clockedInEmployees, setClockedInEmployees] = useState(new Set(['2']))
   const [attendanceSearchTerm, setAttendanceSearchTerm] = useState('')
+  const [selectedEmployee, setSelectedEmployee] = useState('')
 
 
   
