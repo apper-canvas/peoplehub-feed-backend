@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { motion } from 'framer-motion'
+
 import { toast } from 'react-toastify'
 
 import ApperIcon from '../components/ApperIcon'
@@ -187,7 +188,8 @@ const Home = () => {
     )
   }
 
-    <div className="min-h-screen">
+  return (
+
       {/* Header */}
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
@@ -364,6 +366,7 @@ const Home = () => {
             <p>&copy; 2024 PeopleHub. All rights reserved.</p>
           </div>
         </div>
+      </motion.footer>
 
       {/* Generate Report Modal */}
       {showGenerateModal && <GenerateReportModal />}
