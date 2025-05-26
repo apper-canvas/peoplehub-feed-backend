@@ -543,7 +543,7 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
         <nav className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-8 overflow-x-auto">
           {tabs.map((tab) => (
             <button
-              onClick={() => setActiveTab(tab.id)}
+              key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center space-x-2 px-4 py-3 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
                 activeTab === tab.id
@@ -679,14 +679,6 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
               </div>
             )}
 
-            {filteredEmployees.length === 0 && (
-              <div className="text-center py-12">
-                <ApperIcon name="Users" className="w-16 h-16 text-surface-400 mx-auto mb-4" />
-                <p className="text-surface-600 dark:text-surface-400">
-                  {searchTerm ? 'No employees found matching your search.' : 'No employees added yet.'}
-                </p>
-              </div>
-            )}
           </motion.div>
         )}
 
