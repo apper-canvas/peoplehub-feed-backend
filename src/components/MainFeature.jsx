@@ -985,8 +985,9 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                               </div>
                             </>
                           )
+                        })()}
+                      </div>
 
-                      
                       <div className="space-y-2">
                         <button
                           onClick={() => handleClockIn(employee.id, `${employee.firstName} ${employee.lastName}`)}
