@@ -115,7 +115,8 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
   ])
   
   const [clockedInEmployees, setClockedInEmployees] = useState(new Set(['2']))
-  
+  const [selectedEmployee, setSelectedEmployee] = useState('')
+
   
 
   
@@ -278,6 +279,8 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
       'Finance': 'DollarSign'
     }
     return icons[department] || 'Building'
+  }
+
 
   // Time clock functions
   const handleClockIn = (employeeId, employeeName) => {
