@@ -1004,7 +1004,6 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                         })()}
                       </div>
                       <div className="space-y-2">
-
                         <button
                           onClick={() => handleClockIn(employee.id, `${employee.firstName} ${employee.lastName}`)}
                           disabled={isEmployeeClockedIn}
@@ -1015,7 +1014,6 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                           }`}
                         >
                           Sign In
-
                         </button>
                         <button
                           onClick={() => handleClockOut(employee.id, `${employee.firstName} ${employee.lastName}`)}
@@ -1027,9 +1025,9 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                           }`}
                         >
                           Sign Out
-
                         </button>
                       </div>
+
                       </div>
 
 
