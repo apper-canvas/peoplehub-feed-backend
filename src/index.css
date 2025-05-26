@@ -57,6 +57,15 @@
   }
 }
 
+  .modal-overlay {
+    @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50;
+  }
+  
+  .modal-content {
+    @apply bg-white dark:bg-surface-800 rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto;
+  }
+
+
 /* Custom animations */
 @keyframes slideInUp {
   from {
