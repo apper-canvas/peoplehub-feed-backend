@@ -115,7 +115,8 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
   ])
   
   const [clockedInEmployees, setClockedInEmployees] = useState(new Set(['2']))
-  const [selectedEmployee, setSelectedEmployee] = useState('')
+  const [attendanceSearchTerm, setAttendanceSearchTerm] = useState('')
+
 
   
 
@@ -444,6 +445,13 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
   const filteredTimesheets = selectedEmployee ? 
     timesheets.filter(timesheet => timesheet.employeeId === selectedEmployee) : 
     timesheets
+  
+  const filteredEmployeesForAttendance = employees.filter(employee =>
+    employee.firstName.toLowerCase().includes(attendanceSearchTerm.toLowerCase()) ||
+    employee.lastName.toLowerCase().includes(attendanceSearchTerm.toLowerCase()) ||
+    employee.position.toLowerCase().includes(attendanceSearchTerm.toLowerCase()) ||
+    employee.department.toLowerCase().includes(attendanceSearchTerm.toLowerCase())
+  )
 
   return (
     <motion.div
@@ -914,8 +922,24 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                 <span>Time Clock</span>
               </h3>
               
+            {/* Employee Search */}
+            <div className="card p-4 mb-6">
+              <div className="relative">
+                <ApperIcon name="Search" className="absolute left-4 top-1/2 transform -translate-y-1/2 text-surface-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search employees by name, position, or department..."
+                  value={attendanceSearchTerm}
+                  onChange={(e) => setAttendanceSearchTerm(e.target.value)}
+                  className="input-field pl-12 w-full"
+                />
+              </div>
+            </div>
+
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {employees.map(employee => {
+                {filteredEmployeesForAttendance.map(employee => {
+
                   const isEmployeeClockedIn = clockedInEmployees.has(employee.id)
                   const hoursToday = getCurrentDayHours(employee.id)
                   
