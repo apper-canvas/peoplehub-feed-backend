@@ -128,7 +128,6 @@ const Home = () => {
               <ApperIcon name="UserPlus" className="w-5 h-5" />
               <span>Add Employee</span>
             </button>
-            </button>
             <button className="btn-secondary px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-xl flex items-center justify-center space-x-2 shadow-soft hover:shadow-card transition-shadow">
               <ApperIcon name="FileText" className="w-5 h-5" />
               <span>Generate Report</span>
