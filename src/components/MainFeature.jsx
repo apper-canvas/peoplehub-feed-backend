@@ -121,8 +121,10 @@ const MainFeature = () => {
     { id: 'employees', label: 'Employee Directory', icon: 'Users' },
     { id: 'add', label: 'Add Employee', icon: 'UserPlus' },
     { id: 'departments', label: 'Departments', icon: 'Building' },
-    { id: 'attendance', label: 'Attendance', icon: 'Clock' }
+    { id: 'timeclock', label: 'Time Clock', icon: 'Clock' },
+    { id: 'attendance', label: 'Attendance', icon: 'Calendar' }
   ]
+
 
   const filteredEmployees = employees.filter(employee =>
     employee.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -898,6 +900,192 @@ const MainFeature = () => {
             </div>
           </motion.div>
         )}
+        
+        {/* Time Clock Tab */}
+        {activeTab === 'timeclock' && (
+          <motion.div
+            key="timeclock"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-6"
+          >
+            {/* Time Clock Header */}
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-surface-900 dark:text-surface-100 mb-2">
+                Employee Time Clock
+              </h2>
+              <p className="text-surface-600 dark:text-surface-400">
+                Clock in and out to track your work hours
+              </p>
+            </div>
+
+            {/* Current Time Display */}
+            <div className="card p-8 text-center">
+              <div className="mb-4">
+                <div className="text-4xl sm:text-6xl font-bold text-primary mb-2">
+                  {format(new Date(), 'HH:mm:ss')}
+                </div>
+                <div className="text-xl text-surface-600 dark:text-surface-400">
+                  {format(new Date(), 'EEEE, MMMM dd, yyyy')}
+                </div>
+              </div>
+            </div>
+
+            {/* Employee Time Punch Interface */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {employees.map(employee => {
+                const isEmployeeClockedIn = clockedInEmployees.has(employee.id)
+                const hoursToday = getCurrentDayHours(employee.id)
+                const todayRecord = attendanceRecords.find(record => 
+                  record.employeeId === employee.id && 
+                  record.date === format(new Date(), 'yyyy-MM-dd')
+                )
+                
+                return (
+                  <div key={employee.id} className="card p-6">
+                    {/* Employee Info */}
+                    <div className="flex items-center space-x-3 mb-6">
+                      <div className="w-12 h-12 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
+                        <span className="text-white font-semibold text-lg">
+                          {employee.firstName[0]}{employee.lastName[0]}
+                        </span>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-surface-900 dark:text-surface-100">
+                          {employee.firstName} {employee.lastName}
+                        </h3>
+                        <p className="text-sm text-surface-600 dark:text-surface-400">
+                          {employee.position}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Status and Hours */}
+                    <div className="space-y-3 mb-6">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-surface-700 dark:text-surface-300">Status:</span>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          isEmployeeClockedIn 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400'
+                        }`}>
+                          {isEmployeeClockedIn ? 'Clocked In' : 'Clocked Out'}
+                        </span>
+                      </div>
+                      
+                      {todayRecord?.clockIn && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-surface-700 dark:text-surface-300">Clock In:</span>
+                          <span className="text-sm text-surface-900 dark:text-surface-100">
+                            {todayRecord.clockIn}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {todayRecord?.clockOut && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-surface-700 dark:text-surface-300">Clock Out:</span>
+                          <span className="text-sm text-surface-900 dark:text-surface-100">
+                            {todayRecord.clockOut}
+                          </span>
+                        </div>
+                      )}
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-surface-700 dark:text-surface-300">Hours Today:</span>
+                        <span className="text-lg font-bold text-primary">
+                          {hoursToday}h
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Clock In/Out Buttons */}
+                    <div className="space-y-3">
+                      <button
+                        onClick={() => handleClockIn(employee.id, `${employee.firstName} ${employee.lastName}`)}
+                        disabled={isEmployeeClockedIn}
+                        className={`w-full py-4 px-6 rounded-xl text-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
+                          isEmployeeClockedIn
+                            ? 'bg-surface-100 dark:bg-surface-700 text-surface-400 cursor-not-allowed'
+                            : 'bg-accent hover:bg-accent/90 text-white shadow-soft hover:shadow-card'
+                        }`}
+                      >
+                        <ApperIcon name="Play" className="w-5 h-5" />
+                        <span>Clock In</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => handleClockOut(employee.id, `${employee.firstName} ${employee.lastName}`)}
+                        disabled={!isEmployeeClockedIn}
+                        className={`w-full py-4 px-6 rounded-xl text-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
+                          !isEmployeeClockedIn
+                            ? 'bg-surface-100 dark:bg-surface-700 text-surface-400 cursor-not-allowed'
+                            : 'bg-red-500 hover:bg-red-600 text-white shadow-soft hover:shadow-card'
+                        }`}
+                      >
+                        <ApperIcon name="Square" className="w-5 h-5" />
+                        <span>Clock Out</span>
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Today's Summary */}
+            <div className="card p-6">
+              <h3 className="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-4 flex items-center space-x-2">
+                <ApperIcon name="BarChart3" className="w-5 h-5" />
+                <span>Today's Summary</span>
+              </h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="text-center p-4 bg-surface-50 dark:bg-surface-700 rounded-lg">
+                  <div className="text-2xl font-bold text-accent mb-1">
+                    {clockedInEmployees.size}
+                  </div>
+                  <div className="text-sm text-surface-600 dark:text-surface-400">
+                    Currently Clocked In
+                  </div>
+                </div>
+                
+                <div className="text-center p-4 bg-surface-50 dark:bg-surface-700 rounded-lg">
+                  <div className="text-2xl font-bold text-primary mb-1">
+                    {attendanceRecords.filter(r => r.date === format(new Date(), 'yyyy-MM-dd') && r.clockOut).length}
+                  </div>
+                  <div className="text-sm text-surface-600 dark:text-surface-400">
+                    Completed Shifts
+                  </div>
+                </div>
+                
+                <div className="text-center p-4 bg-surface-50 dark:bg-surface-700 rounded-lg">
+                  <div className="text-2xl font-bold text-secondary mb-1">
+                    {Math.round(attendanceRecords
+                      .filter(r => r.date === format(new Date(), 'yyyy-MM-dd') && r.totalHours > 0)
+                      .reduce((sum, r) => sum + r.totalHours, 0) * 100) / 100}h
+                  </div>
+                  <div className="text-sm text-surface-600 dark:text-surface-400">
+                    Total Hours Today
+                  </div>
+                </div>
+                
+                <div className="text-center p-4 bg-surface-50 dark:bg-surface-700 rounded-lg">
+                  <div className="text-2xl font-bold text-surface-700 dark:text-surface-300 mb-1">
+                    {Math.round((attendanceRecords
+                      .filter(r => r.date === format(new Date(), 'yyyy-MM-dd') && r.totalHours > 0)
+                      .reduce((sum, r) => sum + r.totalHours, 0) / 
+                      Math.max(attendanceRecords.filter(r => r.date === format(new Date(), 'yyyy-MM-dd') && r.totalHours > 0).length, 1)) * 100) / 100}h
+                  </div>
+                  <div className="text-sm text-surface-600 dark:text-surface-400">
+                    Average Hours
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         
         {/* Attendance Tab */}
         {activeTab === 'attendance' && (
