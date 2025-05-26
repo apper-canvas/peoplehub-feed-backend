@@ -43,6 +43,7 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
   ])
 
   const [formData, setFormData] = useState({
+    employeeId: '',
     firstName: '',
     lastName: '',
     email: '',
@@ -50,6 +51,7 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
     department: '',
     hireDate: ''
   })
+
 
   const [searchTerm, setSearchTerm] = useState('')
   const [showAddForm, setShowAddForm] = useState(false)
@@ -143,10 +145,11 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
   const handleSubmit = (e) => {
     e.preventDefault()
     
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.position || !formData.department || !formData.hireDate) {
+    if (!formData.employeeId || !formData.firstName || !formData.lastName || !formData.email || !formData.position || !formData.department || !formData.hireDate) {
       toast.error('Please fill in all required fields')
       return
     }
+
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(formData.email)) {
@@ -173,6 +176,7 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
     }
 
     setFormData({
+      employeeId: '',
       firstName: '',
       lastName: '',
       email: '',
@@ -180,12 +184,14 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
       department: '',
       hireDate: ''
     })
+
     setActiveTab('employees')
   }
 
   const handleEdit = (employee) => {
     setEditingEmployee(employee)
     setFormData({
+      employeeId: employee.employeeId || '',
       firstName: employee.firstName,
       lastName: employee.lastName,
       email: employee.email,
@@ -193,6 +199,7 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
       department: employee.department,
       hireDate: employee.hireDate
     })
+
     setActiveTab('add')
   }
 
@@ -701,6 +708,21 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                  Employee ID *
+                </label>
+                <input
+                  type="text"
+                  name="employeeId"
+                  value={formData.employeeId}
+                  onChange={handleInputChange}
+                  className="input-field"
+                  placeholder="Enter employee ID"
+                  required
+                />
+              </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
@@ -731,6 +753,7 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                   />
                 </div>
               </div>
+
 
               <div>
                 <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
@@ -810,6 +833,7 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                     onClick={() => {
                       setEditingEmployee(null)
                       setFormData({
+                        employeeId: '',
                         firstName: '',
                         lastName: '',
                         email: '',
@@ -817,6 +841,7 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                         department: '',
                         hireDate: ''
                       })
+
                     }}
                     className="btn-secondary px-8 py-3 rounded-xl flex items-center justify-center space-x-2 flex-1 sm:flex-none"
                   >
