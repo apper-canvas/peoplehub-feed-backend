@@ -957,7 +957,8 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                               : 'bg-accent/10 text-accent hover:bg-accent/20'
                           }`}
                         >
-                          Clock In
+                          Sign In
+
                         </button>
                         <button
                           onClick={() => handleClockOut(employee.id, `${employee.firstName} ${employee.lastName}`)}
@@ -968,7 +969,8 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                               : 'bg-red-50 text-red-600 hover:bg-red-100'
                           }`}
                         >
-                          Clock Out
+                          Sign Out
+
                         </button>
                       </div>
                     </div>
