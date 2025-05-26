@@ -969,6 +969,7 @@ const MainFeature = ({ activeTab, setActiveTab }) => {
                             {hoursToday}h
                           </span>
                         </div>
+                      </div>
 
                       
                       {/* Sign In/Out Times */}
