@@ -55,7 +55,6 @@ const MainFeature = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingEmployee, setEditingEmployee] = useState(null)
-  const [editingEmployee, setEditingEmployee] = useState(null)
   
   // Attendance-related state
   const [clockedInEmployees, setClockedInEmployees] = useState(new Set())
@@ -824,7 +823,6 @@ const MainFeature = () => {
               </div>
             </div>
           </motion.div>
-        )}
         )}
         
         {/* Attendance Tab */}
